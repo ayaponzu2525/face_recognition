@@ -1,17 +1,39 @@
+import numpy as np
 import pickle
 import cv2
 import sys
+import os
 
 sys.path.append(r"c:\users\ayapo\.pyenv\pyenv-win\versions\3.10.0\lib\site-packages")
-predictor_path = r"c:\Users\ayapo\.pyenv\pyenv-win\versions\3.10.0\Lib\site-packages\face_recognition_models\models\shape_predictor_68_face_landmarks.dat"
 import face_recognition
 
-# 保存された特徴量と名前を読み込む
-with open(r'..\register\train_img_encodings.pkl', 'rb') as f_enc:
-    train_img_encodings = pickle.load(f_enc)
+# データフォルダのパス
+data_dir = r'C:\Users\ayapo\Documents\hightech_local\face_recognition\face_recognition\register_data'
 
-with open(r'..\register\train_img_names.pkl', 'rb') as f_names:
-    train_img_names = pickle.load(f_names)
+# 複数の人物の特徴量と名前を読み込む
+train_img_encodings = []
+train_img_names = []
+
+# データフォルダ内の全ての*_encodings.pklファイルを処理
+for filename in os.listdir(data_dir):
+    if filename.endswith('_encodings.pkl'):
+        # 対応する名前ファイルを探す
+        name_filename = filename.replace('_encodings.pkl', '_names.pkl')
+        
+        # エンコーディングの読み込み
+        with open(os.path.join(data_dir, filename), 'rb') as f_enc:
+            encodings = pickle.load(f_enc)
+        
+        # 名前の読み込み
+        with open(os.path.join(data_dir, name_filename), 'rb') as f_names:
+            names = pickle.load(f_names)
+        
+        # リストに追加
+        train_img_encodings.extend(encodings)
+        train_img_names.extend(names)
+
+# NumPy配列に変換
+train_img_encodings = np.array([list(encoding) for encoding in train_img_encodings])
 
 # カメラを開く
 cap = cv2.VideoCapture(0)
@@ -31,7 +53,7 @@ while True:
         dists = face_recognition.face_distance(train_img_encodings, face_encoding)
 
         # 最も近い距離を取って一致判定
-        best_match_index = dists.argmin()
+        best_match_index = np.argmin(dists)
         if min(dists) < 0.40:  # 距離が0.40未満なら一致と判定
             label = train_img_names[best_match_index]  # 一致した名前を取得
             color = (0, 255, 0)  # 緑色で囲む

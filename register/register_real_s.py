@@ -7,11 +7,10 @@ import face_recognition
 import pickle
 import os
 
-# カメラを開く
-cap = cv2.VideoCapture(0)
+
 
 # 保存するファイル名のディレクトリ
-register_dir = 'register_data'
+register_dir = '../register_data'
 
 # 登録された顔特徴量と名前を保存するリスト
 all_train_img_encodings = []
@@ -34,6 +33,9 @@ while True:
     train_img_names = []
 
     print(f"{name}さんの顔を登録します...")
+    
+    # カメラを開く
+    cap = cv2.VideoCapture(0)
 
     # 顔認識フレーム数の設定（例：5フレーム顔が検出されるまで）
     recognized_faces = 0
